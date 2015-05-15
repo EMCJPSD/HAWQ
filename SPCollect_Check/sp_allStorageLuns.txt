@@ -1,0 +1,28 @@
+CREATE OR REPLACE FUNCTION AllStorageluns() RETURNS void AS $$
+DECLARE
+	recst RECORD;
+	storageinfo refcursor;
+	sql1 varchar;
+BEGIN
+	--drop table if exists hosts;
+	truncate luninfo;
+	--raise notice 'truncate table finished';
+	--create table hosts(id serial,hostname varchar);
+	--create table luninfo(hid int,lunid int,luncapacity bigint);
+
+	PERFORM collectstorages();
+	--raise notice 'collectstorage function is finished';
+	--insert into hosts (hostname) select trim(substring(col1,21)) from allhosts where col1 like 'SystemInfo-HostName:%';
+	open storageinfo for execute 'select serialno,min(revision) revision,min(storageip) storageip from storageinfo group by serialno';
+	fetch storageinfo into recst;
+	while recst.storageip > 0 loop
+	raise notice 'sip is %',recst.storageip;
+	sql1 := 'select collectluns(''' || recst.storageip || ''')';
+	--sql1 :='select collectluns(1)';
+	raise notice 'sql is %',sql1;
+	execute sql1;
+	fetch storageinfo into recst;
+	end loop;
+	close storageinfo;
+END;
+$$ LANGUAGE plpgsql;

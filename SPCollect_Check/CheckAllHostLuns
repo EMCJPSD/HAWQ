@@ -1,0 +1,3 @@
+select allofhostluns();
+select allstorageluns();
+select hostname,devuuid,arraysn,sip,lunid as ALU,luncapacity from hostluns h inner join luninfo l on upper(h.devuuid)=l.uuid order by hostname,alu;

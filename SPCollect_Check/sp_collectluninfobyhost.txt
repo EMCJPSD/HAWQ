@@ -1,0 +1,41 @@
+CREATE OR REPLACE FUNCTION collectluninfobyhost(hn varchar) RETURNS VOID AS $$
+DECLARE
+	sql varchar;
+BEGIN
+	drop table if exists temp1;
+	drop table if exists temp2;
+	drop table if exists temp3;
+	drop table if exists temp4;
+	--drop table if exists temp5;
+
+	--truncate hostluns;
+	drop external table if exists gethostlun;
+	sql := 'create external table gethostlun (col1 text) location (''pxf://localhost:50070/wangzz/*' || hn || '*/host/ScsiLunInfo.txt?Profile=HdfsTextMulti'') FORMAT ''TEXT''';
+	execute sql;
+	--create table hostlun (hostname var,lunid int,luncapacity bigint);
+	create table temp1 (id serial,devuuid varchar);
+	create table temp2 (id serial, vendor varchar);
+	create table temp3 (id serial, arraysn varchar);
+	create table temp4 (id serial, spip varchar);
+	--create table temp5 (id serial, blocksize bigint);
+
+	sql := 'insert into temp1 (devuuid) select substring(col1,e''[0-9a-f]{32}'') from gethostlun where col1 like ''ScsiLunInfo-%-ScsiLunDisplayName:%DGC%''';
+	execute sql;
+	
+	sql := 'insert into temp2 (vendor) select * from (select trim(substring(col1,position('':'' in col1)+1)) as vendor from gethostlun where col1 like ''ScsiLunInfo-%-ScsiLunVendor:%'') a where a.vendor =''DGC''';
+	execute sql;
+
+	sql := 'insert into temp3 (arraysn) select * from (select trim(substring(col1,position('':'' in col1)+1)) as sn from gethostlun where col1 like ''ScsiLunInfo-%-ScsiLunArraySN:%'') a where substring(a.sn,1,3) = ''FCN''';
+	execute sql;
+	
+	sql := e'insert into temp4 (spip) select substring(col1,e''\\\\d+\\\\.\\\\d+\\\\.\\\\d+\\\\.\\\\d+,\\\\s\\\\d+\\\\.\\\\d+\\\\.\\\\d+\\\\.\\\\d+'') from gethostlun where col1 like ''ScsiLunInfo-%-StorageProcessorIP:%''';
+	execute sql;
+
+	--sql := 'insert into temp5 (blocksize) select cast(trim(substring(col1,position('':'' in col1)+1)) as bigint) from gethostlun where col1 like ''ScsiLunInfo-%-HostScsiDiskNumberBlocks:%''';
+	--execute sql;
+
+	sql :='insert into hostluns select distinct ''' || hn || ''',devuuid,arraysn,spip from temp1 inner join (temp3 inner join temp4 on temp3.id=temp4.id) on temp1.id=temp3.id';
+	execute sql;
+
+END;
+$$ LANGUAGE plpgsql;

@@ -1,0 +1,27 @@
+CREATE OR REPLACE FUNCTION COLLECThosthba () RETURNS VOID AS $$
+DECLARE
+	sql varchar;
+	regip varchar;
+BEGIN
+	drop table if exists temp1;
+	drop table if exists temp2;
+	--drop table if exists temp3;
+	truncate hosthba;
+	create table temp1 (id serial,hbauid varchar);
+	create table temp2 (id serial, servername varchar);
+	--create table temp3 (id serial, sgname varchar);
+
+	--create external table getall(col1 text) location ('pxf://localhost:50070/wangzz/*/*/*/*getall.txt?Profile=HdfsTextMulti') FORMAT 'TEXT';
+	--create table storageinfo (sid int,serialno varchar,revision varchar,storageip varchar);
+	
+	sql := 'insert into temp1 (hbauid) select trim(substring(col1,9)) from getall where col1 like ''HBA UID%''';
+	execute sql;
+	sql := 'insert into temp2 (servername) select trim(substring(col1,13)) from getall where col1 like ''Server Name%''';
+	execute sql;
+	--sql := e'insert into temp3 (sgname) select substring(col1,23) from getall where col1 like ''%StorageGroup Name:%''';
+	--execute sql;
+	sql :='insert into hosthba select distinct servername,hbauid from temp1 inner join temp2 on temp1.id=temp2.id order by servername';
+	execute sql;
+
+END;
+$$ LANGUAGE plpgsql;

@@ -1,0 +1,28 @@
+CREATE OR REPLACE FUNCTION COLLECTLUNS (sip varchar) RETURNS VOID AS $$
+DECLARE
+	hn varchar;
+	sql varchar;
+BEGIN
+	drop table if exists temp1;
+	drop table if exists temp2;
+	drop table if exists temp3;
+	--truncate luninfo;
+	drop external table if exists getlun;
+	sql := 'create external table getlun (col1 text) location (''pxf://localhost:50070/wangzz/*/clariion/' || sip || '/naviseccli_getlun.txt?Profile=HdfsTextMulti'') FORMAT ''TEXT''';
+	execute sql;
+	--create table luninfo (hid int,lunid int,luncapacity bigint);
+	create table temp1 (id serial,lunid int);
+	create table temp2 (id serial, luncapacity bigint);
+	create table temp3 (id serial, uuid varchar);
+
+	sql := 'insert into temp1 (lunid) select cast(substring(col1,20) as int) from getlun where col1 like ''LOGICAL UNIT NUMBER%''';
+	execute sql;
+	sql := 'insert into temp2 (luncapacity) select cast(trim(substring(col1,26)) as bigint) from getlun where col1 like ''LUN Capacity(M%''';
+	execute sql;
+	sql := 'insert into temp3 (uuid) select replace(trim(substring(col1,5)),'':'','''') from getlun where col1 like ''UID:%''';
+	execute sql;
+	sql :='insert into LunInfo select distinct ''' || sip || ''',uuid,lunid,luncapacity from temp1 inner join (temp2 inner join temp3 on temp2.id=temp3.id) on temp1.id=temp2.id';
+	execute sql;
+
+END;
+$$ LANGUAGE plpgsql;

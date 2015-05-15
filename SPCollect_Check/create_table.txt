@@ -1,0 +1,3 @@
+create table hostluns (hostname varchar,devuuid varchar,arraysn varchar,spip varchar);
+create table luninfo (sip varchar,uuid varchar,lunid int,luncapacity bigint);
+create table storageinfo (sid int,serialno varchar,revision varchar,storageip varchar);

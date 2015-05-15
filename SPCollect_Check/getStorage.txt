@@ -1,0 +1,1 @@
+create external table getStorage (col1 text) location ('pxf://localhost:50070/wangzz/*/*/*/naviseccli_getagent.txt?Profile=HdfsTextMulti') FORMAT 'TEXT';

@@ -1,0 +1,1 @@
+create external table getpp (col1 text) location ('pxf://localhost:50070/wangzz/*/pp/rpowermt_version.txt?Profile=HdfsTextMulti') FORMAT 'TEXT';

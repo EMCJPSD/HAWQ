@@ -1,0 +1,1 @@
+create external table allhosts (col1 text) location ('pxf://localhost:50070/wangzz/*/host/SystemInfo.txt?Profile=HdfsTextMulti') FORMAT 'TEXT';

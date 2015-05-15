@@ -1,0 +1,2 @@
+select collectstorages();
+select serialno,min(revision) revision from storageinfo group by serialno order by revision;

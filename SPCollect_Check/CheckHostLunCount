@@ -1,0 +1,2 @@
+select allofhostluns();
+select hostname,count(devuuid) as LunCount,arraysn as ArraySN from hostluns group by hostname,arraysn order by hostname;

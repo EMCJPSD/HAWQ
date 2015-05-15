@@ -1,0 +1,27 @@
+CREATE OR REPLACE FUNCTION COLLECTStorages () RETURNS VOID AS $$
+DECLARE
+	sql varchar;
+	regip varchar;
+BEGIN
+	drop table if exists temp1;
+	drop table if exists temp2;
+	drop table if exists temp3;
+	truncate storageinfo;
+	create table temp1 (id serial,serialno varchar);
+	create table temp2 (id serial, revision varchar);
+	create table temp3 (id serial, storageip varchar);
+
+	--create table storageinfo (sid int,serialno varchar,revision varchar,storageip varchar);
+	
+	sql := 'insert into temp1 (serialno) select trim(substring(col1,11)) from getStorage where col1 like ''Serial No:%''';
+	execute sql;
+	sql := 'insert into temp2 (revision) select trim(substring(col1,10)) from getStorage where col1 like ''Revision:%''';
+	execute sql;
+	sql := e'insert into temp3 (storageip) select substring(col1,e''\\\\d+\\\\.\\\\d+\\\\.\\\\d+\\\\.\\\\d+'') from getStorage where col1 like ''# Command used to generate this file : NaviSECCli -h%''';
+	raise notice 'sql is %',sql;
+	execute sql;
+	sql :='insert into storageinfo select distinct temp1.id,serialno,revision,storageip from temp1 inner join (temp2 inner join temp3 on temp2.id=temp3.id) on temp1.id=temp2.id';
+	execute sql;
+
+END;
+$$ LANGUAGE plpgsql;

@@ -1,0 +1,24 @@
+CREATE OR REPLACE FUNCTION Allofhostluns() RETURNS void AS $$
+DECLARE
+	rechost RECORD;
+	hostinfo refcursor;
+	sql1 varchar;
+BEGIN
+	drop table if exists hosts;
+	truncate hostluns;
+	create table hosts(id serial,hostname varchar);
+	--create table luninfo(hid int,lunid int,luncapacity bigint);
+	insert into hosts (hostname) select trim(substring(col1,21)) from allhosts where col1 like 'SystemInfo-HostName:%';
+	open hostinfo for execute 'select hostname from hosts order by id';
+	fetch hostinfo into rechost;
+	while rechost.hostname is not null loop
+	raise notice 'hostname is %',rechost.hostname;
+	sql1 := 'select collectluninfobyhost(''' || rechost.hostname || ''')';
+	--sql1 :='select collectluns(1)';
+	raise notice 'sql is %',sql1;
+	execute sql1;
+	fetch hostinfo into rechost;
+	end loop;
+	close hostinfo;
+END;
+$$ LANGUAGE plpgsql;

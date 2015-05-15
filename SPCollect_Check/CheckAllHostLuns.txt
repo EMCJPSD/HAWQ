@@ -1,0 +1,2 @@
+select allhostluns();
+select h.hostname,l.lunid,l.luncapacity from hosts h inner join luninfo l on h.id=l.hid;

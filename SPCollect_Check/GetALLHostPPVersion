@@ -1,0 +1,7 @@
+drop table if exists hosts;
+create table hosts(id serial,hostname varchar);
+insert into hosts (hostname) select trim(substring(col1,21)) from allhosts where col1 like 'SystemInfo-HostName:%';
+drop table if exists allpp;
+create table allpp (id serial,PPVersion varchar);
+insert into allpp (PPVersion) select trim(substring(col1,46)) from getpp where col1 like 'EMC rpowermt for PowerPath%';
+select hostname,ppversion from hosts h inner join allpp p on h.id=p.id;

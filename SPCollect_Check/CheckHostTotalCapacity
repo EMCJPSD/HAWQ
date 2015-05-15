@@ -1,0 +1,3 @@
+select allofhostluns();
+select allstorageluns();
+select hostname,arraysn,sum(luncapacity) as TotalCapacity from hostluns h inner join luninfo l on upper(h.devuuid)=l.uuid group by hostname,arraysn order by hostname,arraysn;
