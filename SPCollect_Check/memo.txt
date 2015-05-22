@@ -1,3 +1,0 @@
-allstorageluns Ë luninfo
-collectstorages@Ë storageinfo
-allofhostluns Ë hostluns
